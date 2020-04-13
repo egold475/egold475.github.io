@@ -1,0 +1,545 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+	<meta name='generator' content='ExamView HTML Generator 1.1.0'>
+	<meta name='robots' content='noindex,nofollow'>
+	<title>Applied Math 30S - C1Q1 Inductive and Deductive Reasoning</title>
+	<style type='text/css'>
+		.spacer { line-height:.7em; }
+		.title { font-size:14pt; font-family:"Times New Roman", "Times", serif; color:#000000; }
+		.qnumber { font-size:12pt; font-family:"Times New Roman", "Times", serif; color:#000000; text-align:right; }
+		.choice { font-size:12pt; font-family:"Times New Roman", "Times", serif; color:#000000; }
+		.default { font-size:12pt; font-family:"Times New Roman", "Times", serif; color:#000000; }
+		.qinfo { font-size:12pt; font-family:"Times New Roman", "Times", serif; color:#000000; }
+		.points { font-size:10pt; font-family:"Times New Roman", "Times", serif; color:#000000; }
+		TD.pad { padding: 0pt 4pt 0pt 4pt; }
+		.font1 { font-family:"Times New Roman", "Times", serif; }
+	</style>
+<script type='text/javascript' language='JavaScript1.1'>
+<!--
+	// Copyright (c) 2000-2008 eInstruction Corp.
+	var listMap = '1111111';
+	var qtypeMap = '2222222';
+	var ansMap = new Array(7);
+	var ptsMap = new Array(7);
+	ansMap[0] = '43';
+	ptsMap[0] = 1;
+	ansMap[1] = '40';
+	ptsMap[1] = 1;
+	ansMap[2] = '47';
+	ptsMap[2] = 1;
+	ansMap[3] = '46';
+	ptsMap[3] = 1;
+	ansMap[4] = '44';
+	ptsMap[4] = 1;
+	ansMap[5] = '47';
+	ptsMap[5] = 1;
+	ansMap[6] = '45';
+	ptsMap[6] = 1;
+	function HandleSubmit(f)
+	{
+		var	MAGIC = 840;
+		var	totalCorrect = 0;
+		var	totalPossible = 0;
+		var	numCorrect = 0;
+		var	numPossible = 0;
+		var	numBlank = 0;
+		var	index;
+		var	msg;
+		var	i;
+
+		f.student_name.value = StripSpaces(f.student_name.value);
+		f.student_id.value = StripSpaces(f.student_id.value);
+		f.student_email.value = StripSpaces(f.student_email.value);
+
+		FixMR(f);
+		FixMTF(f);
+		index = 0;
+		for (i=0; i < f.length; ++i) {
+			if (f.elements[i].name.indexOf(":") > 0) {
+				if (listMap.charAt(index) == "1") {
+					listIndex = f.elements[i].selectedIndex;
+					text = StripSpaces(f.elements[i].options[listIndex].value);
+				} else {
+					f.elements[i].value = StripSpaces(f.elements[i].value);
+					text = f.elements[i].value;
+				}
+
+				if (text.length == 0)
+					++numBlank;
+				++index;
+			}
+		}
+
+		if (f.student_name.value == "") {
+			alert("Student name cannot be blank.");
+			return(false);
+		}
+
+		if (numBlank > 0) {
+			if (numBlank == 1)
+				msg = "1 question";
+			else
+				msg = numBlank + " questions";
+			if (!confirm("You have not answered " + msg +
+				"  Are you sure you want to end the test?"))
+				return(false);
+		}
+
+		index = 0;
+		var scoreDetails = new Array();
+		for (i=0; i < f.length; ++i) {
+			if (f.elements[i].name.indexOf(":") > 0) {
+				if (listMap.charAt(index) == "1") {
+					listIndex = f.elements[i].selectedIndex;
+					text = f.elements[i].options[listIndex].value;
+				} else
+					text = f.elements[i].value;
+
+				numPossible = ptsMap[index] * MAGIC;
+				if (ansMap[index] == "")
+					scoreDetails[index] = "?--";
+				else {
+					var scoreResult = ScoreAnswer(index, text, numPossible);
+					numCorrect = scoreResult.numPoints;
+					scoreDetails[index] = (scoreResult.isCorrect) ? " " : "X";
+					scoreDetails[index] += (Math.round(numCorrect * 100 / MAGIC) / 100).toString();
+					totalCorrect += numCorrect;
+					totalPossible += numPossible;
+				}
+
+				scoreDetails[index] += "/" + (numPossible / MAGIC);
+				++index;
+			}
+		}
+
+		f.score_details.value = scoreDetails.join("|");
+		f.score_correct.value = Math.round(totalCorrect * 100 / MAGIC) / 100;
+		f.score_possible.value = Math.round(totalPossible * 100 / MAGIC) / 100;
+		if (totalPossible > 0)
+			f.score_percent.value = Math.round(100.0 * totalCorrect / totalPossible);
+		else
+			f.score_percent.value = 0;
+
+		return(true);
+	}
+
+	function TranslateAnswer(s, answerIndex)
+	{
+		var	value;
+		var	newString;
+		var	code;
+		var	i;
+
+		value = (answerIndex % 31) + 1;
+		newString = "";
+		for (i=0; i < s.length; i += 2) {
+			code = parseInt(s.substring(i, i + 2), 16);
+			newString += String.fromCharCode(code ^ value);
+		}
+
+		return(newString);
+	}
+
+	function ScoreAnswer(answerIndex, responseText, pointsPossible)
+	{
+		var answerText = TranslateAnswer(ansMap[answerIndex], answerIndex);
+		var qtype = qtypeMap.charAt(answerIndex);
+		var nrExactMatch = false;
+		var result = new Array();
+
+		result.numPoints = 0;
+		result.isCorrect = false;
+
+		if (qtype == "3" && answerText.substring(0, 2) == "p:") {
+			answerText = answerText.substr(2);
+			if (responseText.toUpperCase() == answerText.toUpperCase())
+				result.isCorrect = true;
+			else
+				result.numPoints = MultiResponseCompare(responseText, answerText, pointsPossible);
+		} else if (qtype == "6") {
+			if (answerText.substring(0, 2) == "==") {
+				answerText = answerText.substr(2);
+				nrExactMatch = true;
+			}
+			if (NumericCompare(responseText, answerText, nrExactMatch))
+				result.isCorrect = true;
+		} else if (qtype == "7") {
+			if (CompletionCompare(responseText, answerText))
+				result.isCorrect = true;
+		} else if (responseText.toUpperCase() == answerText.toUpperCase())
+			result.isCorrect = true;
+
+		if (result.isCorrect)
+			result.numPoints = pointsPossible;
+
+		return(result);
+	}
+
+	function StripSpaces(s)
+	{
+		var	len;
+		var	i;
+
+		len = s.length;
+		for (i=len - 1; i >= 0 && s.charAt(i) == " "; --i)
+			len = i;
+
+		if (len == 0)
+			s = "";
+		else if (len != s.length)
+			s = s.substring(0, len);
+
+		return(s);
+	}
+
+	function MultiResponseCompare(responseText, answerText, pointsPossible)
+	{
+	}
+
+	function NumericCompare(response, answer, exactMatch)
+	{
+	}
+
+
+	function CompletionCompare(responseText, answerText)
+	{
+		return(false);
+	}
+
+    function StripLeadingSpaces(s)
+	{
+		var	len;
+		var	i = 0;
+		var index = -1;
+
+		len = s.length;
+		while(i < len && s.charAt(i) == " ")
+		{
+			index = ++i;			
+	    }
+
+		if (len == 0)
+			s = "";
+		else if (index > -1)
+			s = s.substring(index, len);
+
+		return(s);
+	}
+	
+	function FixMTF(f)
+	{
+	}
+
+	function FixMR(f)
+	{
+	}
+
+	function AllowReset()
+	{
+		return(window.confirm("Do you want to clear all of your answers?"));
+	}
+
+	function Restart()
+	{
+		if (AllowReset()) {
+			document.TestForm.onreset = function() { };
+			document.TestForm.reset();
+			document.TestForm.onreset = function() { AllowReset(); };
+		}
+	}
+// -->
+</script>
+</head>
+<body onResize='if(document.layers && navigator.appVersion.indexOf("Win") < 0){history.go(0);}'
+bgcolor='#FFFFFF' style='background-image:url(a30sc1q1_files/header.gif); background-repeat:no-repeat'>
+<noscript>
+	<h3><font color='#FF0000'>Javascript not enabled</font></h3>
+</noscript>
+<script type='text/javascript' language='JavaScript'>
+<!--
+if (navigator.appName.indexOf("Netscape") >= 0) {
+	if (parseInt(navigator.appVersion.charAt(0)) < 4)
+		alert("This document requires Netscape Navigator version 4.0 or later.");
+} else if (navigator.appName.indexOf("Explorer") >= 0) {
+	if (parseInt(navigator.appVersion.charAt(0)) < 4)
+		alert("This document requires Internet Explorer version 4.0 or later.");
+}
+// -->
+</script>
+<form name='TestForm' action='http://score.examview.com/cgi-bin/results.cgi' method='POST'
+	onSubmit='return(HandleSubmit(this))' onReset='return(AllowReset())'>
+<input type='hidden' name='product_version' value='8.0.1289.63203'>
+<input type='hidden' name='instructor_name' value='a'>
+<input type='hidden' name='instructor_formalname' value='EG'>
+<input type='hidden' name='instructor_email' value='egoldfeld@wsd1.org'>
+<input type='hidden' name='instructor_org' value='a'>
+<input type='hidden' name='instructor_city' value='a'>
+<input type='hidden' name='instructor_state' value='A'>
+<input type='hidden' name='test_name' value='Applied Math 30S - C1Q1 Inductive and Deductive Reasoning'>
+<input type='hidden' name='other_label' value='Other'>
+<input type='hidden' name='test_mixed_questions' value='0'>
+<input type='hidden' name='score_correct' value='0'>
+<input type='hidden' name='score_possible' value='0'>
+<input type='hidden' name='score_percent' value='0'>
+<input type='hidden' name='score_subjective' value='0'>
+<input type='hidden' name='score_details' value=''>
+<input type='hidden' name='score_showresults' value='1'>
+<div class='spacer'>&nbsp;</div>
+<div class='default'>
+	<div style='margin-left:1em'>
+	<b>Name:</b>&nbsp;<input type='text' name='student_name' size='30'> &nbsp;&nbsp;
+	<b>ID:</b>&nbsp;<input type='text' name='student_id' size='12'><br>
+	<div class='spacer'>&nbsp;</div>
+	<b>Email:</b>&nbsp;<input type='text' name='student_email' size='45'><br><br>
+	</div>
+</div>
+<div class='title'>Applied Math 30S - C1Q1 Inductive and Deductive Reasoning</div>
+
+<table align='left' width='100%' border='0' cellpadding='0' cellspacing='0'>
+<tr valign='top'>
+	<td colspan='3'><br>
+<div class='default'><span style='font-size:12pt'>Multiple Choice</span><span style='font-size:10pt'>
+- Select the letter of the best answer.</span></div>
+<div class='spacer'>&nbsp;</div>
+	</td>
+</tr>
+<tr valign='baseline'>
+	<td>
+		<select name='MC:1' align='top' onmousewheel='return(false);'>
+			<option value=' '> 
+			<option value='A'>A
+			<option value='B'>B
+			<option value='C'>C
+			<option value='D'>D
+		</select>
+	</td>
+	<td>
+		<p class='qnumber'>&nbsp;1.&nbsp;</p>
+	</td>
+	<td width='100%'>
+<div class='default'><div style='margin-right:54pt'><span style='font-size:12pt'>Gray works at a
+bicycle store in Vancouver. For the start of spring, the manager of the store has ordered 60 mountain
+bikes and 27 racing bikes. <br></span></div><span style='font-size:12pt'><br>Which conjecture is Gray
+most likely to make from this evidence? <br></span></div>
+<div class='default'><table cellpadding='0' cellspacing='0' width='95%' border='0'><tr
+valign='baseline'><td width='4%'><div class='choice'>A)</div></td><td width='96%'><span
+class='default'><span style='font-size:12pt'>Racing bikes will likely sell better than mountain
+bikes.</span></span></td></tr><tr valign='baseline'><td><div class='choice'>B)</div></td><td><span
+class='default'><span style='font-size:12pt'>Mountain bikes will likely sell better than racing
+bikes.</span></span></td></tr><tr valign='baseline'><td><div class='choice'>C)</div></td><td><span
+class='default'><span style='font-size:12pt'>Either type of bike will sell equally
+well.</span></span></td></tr><tr valign='baseline'><td><div class='choice'>D)</div></td><td><span
+class='default'><span style='font-size:12pt'>Not that many people ride
+bikes.</span></span></td></tr></table></div>
+<div class='spacer'>&nbsp;</div>
+	</td>
+</tr>
+<tr valign='baseline'>
+	<td>
+		<select name='MC:2' align='top' onmousewheel='return(false);'>
+			<option value=' '> 
+			<option value='A'>A
+			<option value='B'>B
+			<option value='C'>C
+			<option value='D'>D
+		</select>
+	</td>
+	<td>
+		<p class='qnumber'>&nbsp;2.&nbsp;</p>
+	</td>
+	<td width='100%'>
+<div class='default'><span style='font-size:12pt'>Emma works part-time at a bakery shop in Saskatoon.
+Today, the baker <br>made 54 apple pies, 20 cherry pies, and 26 bumbleberry pies. <br>Which
+conjecture is Emma most likely to make from this evidence? <br></span></div>
+<div class='default'><table cellpadding='0' cellspacing='0' width='95%' border='0'><tr
+valign='baseline'><td width='4%'><div class='choice'>A)</div></td><td width='96%'><span
+class='default'><span style='font-size:12pt'>People are more likely to buy cherry pie than any other
+pie.</span></span></td></tr><tr valign='baseline'><td><div class='choice'>B)</div></td><td><span
+class='default'><span style='font-size:12pt'>People are more likely to buy apple pie than any other
+pie.</span></span></td></tr><tr valign='baseline'><td><div class='choice'>C)</div></td><td><span
+class='default'><span style='font-size:12pt'>Each type of pie will sell equally as well as the
+others.</span></span></td></tr><tr valign='baseline'><td><div class='choice'>D)</div></td><td><span
+class='default'><span style='font-size:12pt'>People are more likely to buy bumbleberry pie than any
+other pie.</span></span></td></tr></table></div>
+<div class='spacer'>&nbsp;</div>
+	</td>
+</tr>
+<tr valign='baseline'>
+	<td>
+		<select name='MC:3' align='top' onmousewheel='return(false);'>
+			<option value=' '> 
+			<option value='A'>A
+			<option value='B'>B
+			<option value='C'>C
+			<option value='D'>D
+		</select>
+	</td>
+	<td>
+		<p class='qnumber'>&nbsp;3.&nbsp;</p>
+	</td>
+	<td width='100%'>
+<div class='default'><span style='font-size:12pt'>Justin gathered the following
+evidence.<br></span><span style='font-size:12pt'><br>17(22) =
+<b>3</b>7<b>4</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 14(22) =
+<b>3</b>0<b>8</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 36(22) =
+<b>7</b>9<b>2</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 18(22) = <b>3</b>9<b>6</b><br></span><span
+style='font-size:12pt'><br>Which conjecture, if any, is Justin most likely to make from this
+evidence?<br></span></div>
+<div class='default'><table cellpadding='0' cellspacing='0' width='95%' border='0'><tr
+valign='baseline'><td width='4%'><div class='choice'>A)</div></td><td width='96%'><span
+class='default'><span style='font-size:12pt'>When you multiply a two-digit number by 22, the last and
+first digits of the product are the digits of the original number.</span></span></td></tr><tr
+valign='baseline'><td><div class='choice'>B)</div></td><td><span class='default'><span
+style='font-size:12pt'>When you multiply a two-digit number by 22, the first and last digits of the
+product are the digits of the original number.</span></span></td></tr><tr valign='baseline'><td><div
+class='choice'>C)</div></td><td><span class='default'><span style='font-size:12pt'>When you multiply
+a two-digit number by 22, the first and last digits of the product form a number that is twice the
+original number.</span></span></td></tr><tr valign='baseline'><td><div
+class='choice'>D)</div></td><td><span class='default'><span style='font-size:12pt'>None of the above
+conjectures can be made from this evidence.</span></span></td></tr></table></div>
+<div class='spacer'>&nbsp;</div>
+	</td>
+</tr>
+<tr valign='baseline'>
+	<td>
+		<select name='MC:4' align='top' onmousewheel='return(false);'>
+			<option value=' '> 
+			<option value='A'>A
+			<option value='B'>B
+			<option value='C'>C
+			<option value='D'>D
+		</select>
+	</td>
+	<td>
+		<p class='qnumber'>&nbsp;4.&nbsp;</p>
+	</td>
+	<td width='100%'>
+<div class='default'><div style='margin-left:18pt'><span style='font-size:12pt'>Which conjecture, if
+any, could you make about the sum of three odd integers?<br></span></div></div>
+<div class='default'><table cellpadding='0' cellspacing='0' width='95%' border='0'><tr
+valign='baseline'><td width='4%'><div class='choice'>A)</div></td><td width='96%'><span
+class='default'><span style='font-size:12pt'>The sum will be an even
+integer.</span></span></td></tr><tr valign='baseline'><td><div class='choice'>B)</div></td><td><span
+class='default'><span style='font-size:12pt'>The sum will be an odd
+integer.</span></span></td></tr><tr valign='baseline'><td><div class='choice'>C)</div></td><td><span
+class='default'><span style='font-size:12pt'>The sum will be negative.</span></span></td></tr><tr
+valign='baseline'><td><div class='choice'>D)</div></td><td><span class='default'><span
+style='font-size:12pt'>It is not possible to make a
+conjecture.</span></span></td></tr></table></div>
+<div class='spacer'>&nbsp;</div>
+	</td>
+</tr>
+<tr valign='baseline'>
+	<td>
+		<select name='MC:5' align='top' onmousewheel='return(false);'>
+			<option value=' '> 
+			<option value='A'>A
+			<option value='B'>B
+			<option value='C'>C
+			<option value='D'>D
+		</select>
+	</td>
+	<td>
+		<p class='qnumber'>&nbsp;5.&nbsp;</p>
+	</td>
+	<td width='100%'>
+<div class='default'><span style='font-size:12pt'>Which conjecture, if any, could you make about the
+sum of two even integers <br>and one odd integer?<br></span></div>
+<div class='default'><table cellpadding='0' cellspacing='0' width='95%' border='0'><tr
+valign='baseline'><td width='4%'><div class='choice'>A)</div></td><td width='96%'><span
+class='default'><span style='font-size:12pt'>The sum will be an odd
+integer.</span></span></td></tr><tr valign='baseline'><td><div class='choice'>B)</div></td><td><span
+class='default'><span style='font-size:12pt'>The sum will be an even
+integer.</span></span></td></tr><tr valign='baseline'><td><div class='choice'>C)</div></td><td><span
+class='default'><span style='font-size:12pt'>The sum will be negative.</span></span></td></tr><tr
+valign='baseline'><td><div class='choice'>D)</div></td><td><span class='default'><span
+style='font-size:12pt'>It is not possible to make a
+conjecture.</span></span></td></tr></table></div>
+<div class='spacer'>&nbsp;</div>
+	</td>
+</tr>
+<tr valign='baseline'>
+	<td>
+		<select name='MC:6' align='top' onmousewheel='return(false);'>
+			<option value=' '> 
+			<option value='A'>A
+			<option value='B'>B
+			<option value='C'>C
+			<option value='D'>D
+		</select>
+	</td>
+	<td>
+		<p class='qnumber'>&nbsp;6.&nbsp;</p>
+	</td>
+	<td width='100%'>
+<div class='default'><span style='font-size:12pt'>Which conjecture, if any, could you make about the
+sum of two odd integers <br>and one even integer?<br></span></div>
+<div class='default'><table cellpadding='0' cellspacing='0' width='95%' border='0'><tr
+valign='baseline'><td width='4%'><div class='choice'>A)</div></td><td width='96%'><span
+class='default'><span style='font-size:12pt'>The sum will be an even
+integer.</span></span></td></tr><tr valign='baseline'><td><div class='choice'>B)</div></td><td><span
+class='default'><span style='font-size:12pt'>The sum will be an odd
+integer.</span></span></td></tr><tr valign='baseline'><td><div class='choice'>C)</div></td><td><span
+class='default'><span style='font-size:12pt'>The sum will be negative.</span></span></td></tr><tr
+valign='baseline'><td><div class='choice'>D)</div></td><td><span class='default'><span
+style='font-size:12pt'>It is not possible to make a
+conjecture.</span></span></td></tr></table></div>
+<div class='spacer'>&nbsp;</div>
+	</td>
+</tr>
+<tr valign='baseline'>
+	<td>
+		<select name='MC:7' align='top' onmousewheel='return(false);'>
+			<option value=' '> 
+			<option value='A'>A
+			<option value='B'>B
+			<option value='C'>C
+			<option value='D'>D
+		</select>
+	</td>
+	<td>
+		<p class='qnumber'>&nbsp;7.&nbsp;</p>
+	</td>
+	<td width='100%'>
+<div class='default'>Determine an appropriate conjecture.<br><br><div
+style='font-size:2pt'></div><table cellpadding='0' cellspacing='0' width='55%' border='0'><tr
+valign='top'><td class='pad' style=' border-left:0.8pt solid #000000; border-top:0.8pt solid #000000;
+border-right:0.8pt solid #000000; border-bottom:0.8pt solid #000000;'>Example 1<br>9 x 12 =
+108<br>4.5 x 24= 108</td><td class='pad' style=' border-top:0.8pt solid #000000; border-right:0.8pt
+solid #000000; border-bottom:0.8pt solid #000000;'>Example 2<br>15 x 14 = 210<br>30 x 7 =
+210</td></tr><tr height='0' style='border:none'><td width='50%'></td><td
+width='50%'></td></tr></table></div>
+<div class='default'><table cellpadding='0' cellspacing='0' width='95%' border='0'><tr
+valign='baseline'><td width='4%'><div class='choice'>A)</div></td><td width='96%'><span
+class='default'>If you double one factor and double the other factor the product is the
+same.</span></td></tr><tr valign='baseline'><td><div class='choice'>B)</div></td><td><span
+class='default'>If you half one factor and double the other factor the product is the
+same.</span></td></tr><tr valign='baseline'><td><div class='choice'>C)</div></td><td><span
+class='default'>If you half one factor and half the other factor the product is the
+same.</span></td></tr><tr valign='baseline'><td><div class='choice'>D)</div></td><td><span
+class='default'>None of these conjectures are true.</span></td></tr></table></div>
+<div class='spacer'>&nbsp;</div>
+	</td>
+</tr>
+</table>
+<br clear='all'>
+<br>
+<br>
+<table align='left' width='100%' cellpadding='0' cellspacing='0' border='0'>
+<tr>
+    <td bgcolor='#000000'>
+    <div style='font-size:1pt'>&nbsp;</div>
+    </td>
+</tr>
+<tr>
+    <td><input type='image' src='a30sc1q1_files/submit.gif' alt='Grade and Submit'>
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+	<a href='#' onclick='Restart(); return false'><img
+	    src='a30sc1q1_files/restart.gif' border='0' alt='Start Over'></a>
+    </td>
+</tr>
+</table>
+</form>
+</body>
+</html>
