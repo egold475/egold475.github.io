@@ -1,0 +1,222 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<HTML><HEAD><META content="IE=5.0000" http-equiv="X-UA-Compatible">
+<TITLE>TVM Solver</TITLE> 
+<META http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<SCRIPT language="JavaScript">
+
+PV=0;
+
+function get_FV(n,int,PV,pay,ppy,cpy) {
+n = parseFloat(document.form.n.value);
+int = parseFloat(document.form.int.value);
+PV = parseFloat(document.form.PV.value);
+pay = parseFloat(document.form.pay.value);
+ppy = parseFloat(document.form.ppy.value);
+cpy = parseFloat(document.form.cpy.value);
+
+	if (int != 0) {	
+		j = PV * (Math.pow(int/cpy*0.01 + 1,n/ppy*cpy) ) + (pay * (Math.pow(int/cpy*0.01 + 1,n/ppy*cpy) - 1) / (Math.pow(int/cpy*0.01 + 1,1/ppy*cpy) - 1) );
+	}
+	else {
+		j = PV + (n * pay);
+        }
+
+if(pay<0 & PV<0) {j=-1*j} else {if (pay>0 & PV<0){j=-1*j}} ; document.form.FV.value = (j).toFixed(2);
+
+}
+
+
+
+function get_PV(n,int,pay,FV,ppy,cpy) {
+n = parseFloat(document.form.n.value);
+
+int = parseFloat(document.form.int.value);
+
+pay = parseFloat(document.form.pay.value);
+
+FV = parseFloat(document.form.FV.value);
+
+ppy = parseFloat(document.form.ppy.value);
+
+cpy = parseFloat(document.form.cpy.value);
+
+	
+if (int != 0) {	j = ( FV - (pay * (Math.pow(int/cpy*0.01 + 1,n/ppy*cpy) - 1) / (Math.pow(int/cpy*0.01 + 1,1/ppy*cpy) - 1) ) ) / (Math.pow(int/cpy*0.01 + 1,n/ppy*cpy) );
+}
+	
+    else {
+		j = FV - (n * pay);
+	}
+
+	
+document.form.PV.value = (j).toFixed(2);
+
+}
+
+
+
+function get_pay(n,int,PV,FV,ppy,cpy) 
+{
+n = parseFloat(document.form.n.value);
+
+int = parseFloat(document.form.int.value);
+
+PV = parseFloat(document.form.PV.value);
+
+FV = parseFloat(document.form.FV.value);
+
+ppy = parseFloat(document.form.ppy.value);
+
+cpy = parseFloat(document.form.cpy.value);
+
+	
+if (int != 0) {	
+j = ( PV * (Math.pow(int/cpy*0.01 + 1,1/ppy*cpy) - 1) ) / (1 - Math.pow(int/cpy*0.01 + 1,-1*n/ppy*cpy) ) + FV * (Math.pow(int/cpy*0.01 + 1,1/ppy*cpy) - 1) / (1 - Math.pow(int/cpy*0.01 + 1,n/ppy*cpy) );
+}
+	
+   else {
+j = (PV - FV) / n;
+	}
+	
+	
+
+document.form.pay.value = (-1*j).toFixed(2);
+
+}
+
+function get_n(int,PV,pay,FV,ppy,cpy) {
+int = parseFloat(document.form.int.value);
+
+PV = parseFloat(document.form.PV.value);
+
+pay = parseFloat(document.form.pay.value);
+
+FV = parseFloat(document.form.FV.value);
+
+ppy = parseFloat(document.form.ppy.value);
+
+cpy = parseFloat(document.form.cpy.value);
+
+	
+if (int != 0) {	
+	
+		if (PV<FV)	{
+ j = PV + (pay * (Math.pow(int/cpy*0.01 + 1,0) - 1) / (Math.pow(int/cpy*0.01 + 1,1/ppy*cpy) - 1) );
+
+	
+			for (test_n=0; FV>j; test_n=test_n+0.001) {
+				j = PV * (Math.pow(int/cpy*0.01 + 1,test_n/ppy*cpy) ) + (pay * (Math.pow(int/cpy*0.01 + 1,test_n/ppy*cpy) - 1) / (Math.pow(int/cpy*0.01 + 1,1/ppy*cpy) - 1) );
+		}	
+			
+		}
+		else {
+			j = PV + (pay * (Math.pow(int/cpy*0.01 + 1,0) - 1) / (Math.pow(int/cpy*0.01 + 1,1/ppy*cpy) - 1) );
+		
+			for (test_n=0; FV<j; test_n=test_n+0.001) {
+				j = PV * (Math.pow(int/cpy*0.01 + 1,test_n/ppy*cpy) ) + (pay * (Math.pow(int/cpy*0.01 + 1,test_n/ppy*cpy) - 1) / (Math.pow(int/cpy*0.01 + 1,1/ppy*cpy) - 1) );
+			}
+		}	
+	
+		test_n = test_n - 0.001;
+	}
+
+	else {
+		test_n = ( FV - PV ) / pay; 
+	}
+
+document.form.n.value = Math.round(1000*test_n)/1000;
+
+	
+}
+
+function get_int(n,PV,pay,FV,ppy,cpy) {
+n = parseFloat(document.form.n.value);
+PV = parseFloat(document.form.PV.value);
+pay = parseFloat(document.form.pay.value);
+FV = parseFloat(document.form.FV.value);
+ppy = parseFloat(document.form.ppy.value);
+cpy = parseFloat(document.form.cpy.value);
+		
+	if (PV>=0) {
+		j = PV + pay * n;
+		for (test_i=0.0000001; FV>j; test_i=test_i+0.001) 
+    {
+ j = PV * (Math.pow(test_i/cpy*0.01 + 1,n/ppy*cpy) ) + (pay * (Math.pow(test_i/cpy*0.01 + 1,n/ppy*cpy) - 1) / (Math.pow(test_i/cpy*0.01 + 1,1/ppy*cpy) - 1) );
+		}	
+	
+		test_i=test_i-0.001;
+	}	
+		
+	else {
+		j = PV + pay * n;
+		for (test_i=0.0000001; FV<j; test_i=test_i+0.0001) {
+			j = PV * (Math.pow(test_i/cpy*0.01 + 1,n/ppy*cpy) ) + (pay * (Math.pow(test_i/cpy*0.01 + 1,n/ppy*cpy) - 1) / (Math.pow(test_i/cpy*0.01 + 1,1/ppy*cpy) - 1) );
+		}	
+	
+		test_i=test_i-0.0001;
+	}
+	
+	if (test_i<0) {test_i=0;}
+
+document.form.int.value = Math.round(1000*test_i)/1000;
+
+}
+
+</SCRIPT>
+ 
+<META name="GENERATOR" content="MSHTML 11.00.10570.1001"></HEAD> 
+<BODY>
+<P>
+<CENTER>
+<P align="CENTER"><B>TVM Solver</B></P></CENTER>
+<P>
+<CENTER>
+<FORM name="form">
+<TABLE border="2" cellpadding="5">
+  <TBODY>
+  <TR>
+    <TD colspan="2">Number of payments: (N)</TD>
+    <TD 
+align="center"><INPUT name="n" style="text-align: center;" type="text" size="10" value="0"> 
+     </TD>
+    <TD align="middle" colspan="6"><INPUT name="button" onclick="get_n(int,PV,pay,FV,ppy)" type="button" value="Solve for N"> 
+    </TD></TR>
+  <TR>
+    <TD colspan="2">Interest rate:  (I%)<BR></TD>
+    <TD align="center"><INPUT name="int" style="text-align: center;" type="text" size="10" value="0"></TD>
+    <TD align="middle" colspan="6"><INPUT name="button" onclick="get_int(n,PV,pay,FV,ppy)" type="button" value="Solve for I"> 
+    </TD></TR>
+  <TR>
+    <TD colspan="2">Present value   (PV):<BR></TD>
+    <TD align="center"><INPUT name="PV" style="text-align: center;" type="text" size="10" value="0"> 
+    </TD>
+    <TD align="middle" colspan="6"><INPUT name="button" onclick="get_PV(n,int,pay,FV,ppy)" type="button" value="Solve for PV"> 
+    </TD></TR>
+  <TR>
+    <TD colspan="2">Payment  (PMT):</TD>
+    <TD align="center"><INPUT name="pay" style="text-align: center;" type="text" size="10" value="0"> 
+    </TD>
+    <TD align="middle" colspan="6"><INPUT name="button" onclick="get_pay(n,int,PV,FV,ppy)" type="button" value="Solve for PMT"> 
+    </TD></TR>
+  <TR>
+    <TD colspan="2">Future value:  (FV)</TD>
+    <TD align="center"><INPUT name="FV" style="text-align: center;" type="text" size="10" value="0"> 
+     </TD>
+    <TD align="middle" colspan="6"><INPUT name="button" onclick="get_FV(n,int,PV,pay,ppy)" type="button" value="Solve for FV"> 
+    </TD></TR>
+  <TR>
+    <TD colspan="2">Payment frequency:   (P/Y)</TD>
+    <TD align="center"><SELECT name="ppy"><OPTION value="1">1	 <OPTION 
+        value="2">2	 <OPTION value="4">4	 <OPTION 
+        value="6">6	 <OPTION value="12">12	 <OPTION 
+        value="24">24	 <OPTION value="26">26	 <OPTION 
+        value="52">52	 </OPTION></SELECT> </TD></TR>
+  <TR>
+    <TD colspan="2">Compounding frequency:   (C/Y)</TD>
+    <TD align="center"><SELECT name="cpy"><OPTION value="1">1	 <OPTION 
+        value="2">2	 <OPTION value="4">4	 <OPTION 
+        value="6">6	 <OPTION value="12">12	 <OPTION 
+        value="24">24	 <OPTION value="26">26	 <OPTION 
+        value="52">52	 </OPTION></SELECT> 
+</TD></TR></TBODY></TABLE></FORM></CENTER></BODY></HTML>
